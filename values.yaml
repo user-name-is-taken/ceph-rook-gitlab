@@ -33,3 +33,57 @@ resources: {}
 tolerations: []
 
 affinity: {}
+
+gitlab:
+  global:
+    edition: ce
+  mino:
+    enabled: false
+      ## doc/charts/globals.md#lfs-artifacts-uploads-packages-external-mr-diffs
+
+# the following configurations should be overriden without the user caring, but I'm putting them here for now    
+
+  # lfs:
+  #   enabled: true
+  #   proxy_download: true
+  #   bucket: git-lfs
+  #   connection: {}
+  #     # secret:
+  #     # key:
+  # artifacts:
+  #   enabled: true
+  #   proxy_download: true
+  #   bucket: gitlab-artifacts
+  #   connection: {}
+  #     # secret:
+  #     # key:
+  # uploads:
+  #   enabled: true
+  #   proxy_download: true
+  #   bucket: gitlab-uploads
+  #   connection: {}
+  #     # secret:
+  #     # key:
+  # packages:
+  #   enabled: true
+  #   proxy_download: true
+  #   bucket: gitlab-packages
+  #   connection: {}
+  # externalDiffs:
+  #   when:
+  #   proxy_download: true
+  #   bucket: gitlab-mr-diffs
+  #   connection: {}
+
+  # ## doc/charts/globals.md#pseudonymizer-settings
+  # pseudonymizer:
+  #   configMap:
+  #   bucket: gitlab-pseudo
+  #   connection: {}
+  #     # secret:
+  #     # key:
+  # backups:
+  #   bucket: gitlab-backups
+  #   tmpBucket: tmp
+
+
