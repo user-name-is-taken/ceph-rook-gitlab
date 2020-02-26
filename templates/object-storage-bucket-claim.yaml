@@ -2,11 +2,11 @@
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
-  name: ceph-bucket
+  name: {{ .Release.Name }}-ceph-bucket
   annotations:
     "helm.sh/hook": pre-install
     #https://helm.sh/docs/topics/charts_hooks/
 spec:
   # bucketName: ceph-bkt
-  generateBucketName: ceph-bkt
-  storageClassName: rook-ceph-bucket
+  generateBucketName: {{ .Release.Name }}-ceph-bkt
+  storageClassName: {{ .Release.Name }}-rook-ceph-bucket

@@ -22,4 +22,4 @@
 *.tmproj
 .vscode/
 
-./templates/registry-secret.yaml
+*/registry-secret.yaml
