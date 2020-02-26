@@ -1,0 +1,13 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+   name: {{ .Release.Name }}-rook-ceph-bucket
+   annotations:
+    "helm.sh/hook": pre-install
+    #https://helm.sh/docs/topics/charts_hooks/
+provisioner: ceph.rook.io/bucket
+reclaimPolicy: Delete
+parameters:
+  objectStoreName: {{ .Release.Name }}-my-store
+  objectStoreNamespace: rook-ceph
+  region: us-east-1
