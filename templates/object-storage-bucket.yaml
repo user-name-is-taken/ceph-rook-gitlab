@@ -9,5 +9,5 @@ provisioner: ceph.rook.io/bucket
 reclaimPolicy: Delete
 parameters:
   objectStoreName: {{ .Release.Name }}-my-store
-  objectStoreNamespace: rook-ceph
+  objectStoreNamespace: {{ .Release.Namespace}}
   region: us-east-1
