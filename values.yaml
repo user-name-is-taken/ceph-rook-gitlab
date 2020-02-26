@@ -37,19 +37,33 @@ affinity: {}
 gitlab:
   global:
     edition: ce
+    ingress:
+      configureCertmanager: false
+      # tls:
+      #   enabled: false
   mino:
     enabled: false
-      ## doc/charts/globals.md#lfs-artifacts-uploads-packages-external-mr-diffs
+  
+  ## Automatic shared secret generation
+  ## doc/installation/secrets.md
+  ## doc/charts/shared-secrets
+  shared-secrets:
+    enabled: true #this is false by default.
+    rbac:
+      create: true
+
+  ## doc/charts/globals.md#lfs-artifacts-uploads-packages-external-mr-diffs
+  lfs:
+    enabled: false
+    proxy_download: true
+    bucket: git-lfs
+    connection: {}
+      # secret:
+      # key:
 
 # the following configurations should be overriden without the user caring, but I'm putting them here for now    
 
-  # lfs:
-  #   enabled: true
-  #   proxy_download: true
-  #   bucket: git-lfs
-  #   connection: {}
-  #     # secret:
-  #     # key:
+
   # artifacts:
   #   enabled: true
   #   proxy_download: true
