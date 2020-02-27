@@ -4,6 +4,8 @@
 
 replicaCount: 1
 
+# the region is used by s3
+region: us-east-1
 
 imagePullSecrets: []
 nameOverride: ""
@@ -35,31 +37,63 @@ tolerations: []
 affinity: {}
 
 gitlab:
+  ## Automatic shared secret generation
+  ## doc/installation/secrets.md
+  ## doc/charts/shared-secrets
+  shared-secrets:
+    enabled: true
+    rbac:
+      create: true
+
+  ## Installation & configuration of gitlab/gitlab-runner
+  ## See requirements.yaml for current version
+  gitlab-runner:
+    install: true
+  
+  runners:
+    locked: false
+    cache:
+      cacheType: s3
+      s3BucketName: runner-cache
+      cacheShared: true
+      s3BucketLocation: us-east-1
+      s3CachePath: gitlab-runner
+      s3CacheInsecure: false
+
   global:
+      ## GitLab operator is Alpha. Not for production use.
+    operator:
+      enabled: false
+      rollout:
+        # Enables automatic pause for deployment rollout. This must be set to `true` to fix
+        # Helm's issue with 3-way merge. See:
+        #   https://gitlab.com/gitlab-org/charts/gitlab/issues/1262
+        #   https://github.com/helm/helm/issues/3805
+        autoPause: true
+
     edition: ce
     ingress:
       configureCertmanager: false
       # tls:
       #   enabled: false
-  mino:
-    enabled: false
-  
-  ## Automatic shared secret generation
-  ## doc/installation/secrets.md
-  ## doc/charts/shared-secrets
-  shared-secrets:
-    enabled: true #this is false by default.
-    rbac:
-      create: true
+    mino:
+      enabled: false
 
-  ## doc/charts/globals.md#lfs-artifacts-uploads-packages-external-mr-diffs
-  lfs:
-    enabled: false
-    proxy_download: true
-    bucket: git-lfs
-    connection: {}
-      # secret:
-      # key:
+###################################STORAGE STUFF###############################
+
+# according to this https://gitlab.com/gitlab-org/charts/gitlab/-/tree/master/doc/advanced/external-object-storage
+# each storage type needs its own bucket, but they can share a secret.
+# so you can probably use a shared user for all the buckets
+
+    ## doc/charts/globals.md#lfs-artifacts-uploads-packages-external-mr-diffs
+    ## example storage settings: https://gitlab.com/gitlab-org/charts/gitlab/blob/master/examples/values-external-objectstorage.yaml
+    lfs:
+      enabled: false
+      proxy_download: true
+      bucket: git-lfs
+      connection: {}
+        # secret:
+        # key:
 
 # the following configurations should be overriden without the user caring, but I'm putting them here for now    
 
