@@ -2,7 +2,7 @@
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
-  name: {{ printf "%s-%s-obc" .Release.Name .Values.gitlab.global.pseudonymizer.bucket }}
+  name: {{ .Values.gitlab.global.pseudonymizer.bucket }}
   annotations:
     "helm.sh/hook": pre-install
     #https://helm.sh/docs/topics/charts_hooks/
