@@ -85,6 +85,8 @@ gitlab:
 # each storage type needs its own bucket, but they can share a secret.
 # so you can probably use a shared user for all the buckets
 
+## object storage settings for future: https://docs.gitlab.com/ee/administration/job_artifacts.html#s3-compatible-connection-settings
+
     ## doc/charts/globals.md#lfs-artifacts-uploads-packages-external-mr-diffs
     ## example storage settings: https://gitlab.com/gitlab-org/charts/gitlab/blob/master/examples/values-external-objectstorage.yaml
     lfs:
@@ -98,40 +100,40 @@ gitlab:
 # the following configurations should be overriden without the user caring, but I'm putting them here for now    
 
 
-  # artifacts:
-  #   enabled: true
-  #   proxy_download: true
-  #   bucket: gitlab-artifacts
-  #   connection: {}
-  #     # secret:
-  #     # key:
-  # uploads:
-  #   enabled: true
-  #   proxy_download: true
-  #   bucket: gitlab-uploads
-  #   connection: {}
-  #     # secret:
-  #     # key:
-  # packages:
-  #   enabled: true
-  #   proxy_download: true
-  #   bucket: gitlab-packages
-  #   connection: {}
-  # externalDiffs:
-  #   when:
-  #   proxy_download: true
-  #   bucket: gitlab-mr-diffs
-  #   connection: {}
+    artifacts:
+      enabled: true
+      proxy_download: true
+      bucket: gitlab-artifacts
+      connection: {}
+        # secret:
+        # key:
+    uploads:
+      enabled: true
+      proxy_download: true
+      bucket: gitlab-uploads
+      connection: {}
+        # secret:
+        # key:
+    packages:
+      enabled: true
+      proxy_download: true
+      bucket: gitlab-packages
+      connection: {}
+    externalDiffs:
+      when:
+      proxy_download: true
+      bucket: gitlab-mr-diffs
+      connection: {}
 
-  # ## doc/charts/globals.md#pseudonymizer-settings
-  # pseudonymizer:
-  #   configMap:
-  #   bucket: gitlab-pseudo
-  #   connection: {}
-  #     # secret:
-  #     # key:
-  # backups:
-  #   bucket: gitlab-backups
-  #   tmpBucket: tmp
+    ## doc/charts/globals.md#pseudonymizer-settings
+    pseudonymizer:
+      configMap:
+      bucket: gitlab-pseudo
+      connection: {}
+        # secret:
+        # key:
+    backups:
+      bucket: gitlab-backups
+      tmpBucket: tmp
 
 

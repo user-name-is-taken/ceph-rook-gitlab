@@ -2,11 +2,10 @@
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
-  name: {{ .Release.Name }}-ceph-bucket
+  name: {{ printf "%s-%s-obc" .Release.Name .Values.gitlab.global.lfs.bucket }}
   annotations:
     "helm.sh/hook": pre-install
     #https://helm.sh/docs/topics/charts_hooks/
 spec:
-  # bucketName: ceph-bkt
-  generateBucketName: {{ .Release.Name }}-ceph-bkt
-  storageClassName: {{ .Release.Name }}-rook-ceph-bucket
+  bucketName: {{ .Values.gitlab.global.lfs.bucket }}
+  storageClassName: {{ .Release.Name -}} -s3-storage-class

@@ -1,7 +1,7 @@
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-   name: {{ .Release.Name }}-rook-ceph-bucket
+   name: {{ .Release.Name }}-s3-storage-class
    annotations:
     "helm.sh/hook": pre-install
     #https://helm.sh/docs/topics/charts_hooks/

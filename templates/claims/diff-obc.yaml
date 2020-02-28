@@ -1,0 +1,11 @@
+# https://rook.io/docs/rook/v1.2/ceph-object-bucket-claim.html
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: {{ printf "%s-%s-obc" .Release.Name .Values.gitlab.global.externalDiffs.bucket }}
+  annotations:
+    "helm.sh/hook": pre-install
+    #https://helm.sh/docs/topics/charts_hooks/
+spec:
+  bucketName: {{ .Values.gitlab.global.externalDiffs.bucket }}
+  storageClassName: {{ .Release.Name -}} -s3-storage-class
