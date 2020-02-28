@@ -4,5 +4,5 @@ metadata:
   name: my-user
   namespace: {{ .Release.Namespace }}
 spec:
-  store: my-store
+  store: {{ .Release.Name }}-store
   displayName: "my display name"
