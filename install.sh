@@ -4,10 +4,12 @@ source ./variables
 
 cat values.yml | envsubst > tmp-values.yml
 
+# note you can also do this with helm install's 
+
 echo "running helm install"
 # install s3 objects without installing gitlab 
 # https://stackoverflow.com/questions/54032974/helm-conditionally-install-subchart
-helm install $RELEASE_NAME --set gitlab.enabled=false --namespace=$NAMESPACE -f tmp-values.yml --dependency-update --atomic --debug
+helm install $RELEASE_NAME --set gitlab.enabled=false --namespace=$NAMESPACE --set-file tmp-values.yml --dependency-update --atomic --debug
 
 # get secret
 export bucketName=$( helm show values . --skip-headers | grep "^ *bucket:" | head -1 | awk '{print $2}' ) 
