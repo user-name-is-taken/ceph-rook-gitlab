@@ -5,18 +5,15 @@
 replicaCount: 1
 
 # the region is used by s3
-region: us-east-1
+rook:
+  region: $REGION
+  bucketsecret: $BUCKET_SECRET
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
+securityContext: true
   # runAsUser: 1000
 
 resources: {}
@@ -56,7 +53,7 @@ gitlab:
       cacheType: s3
       s3BucketName: runner-cache
       cacheShared: true
-      s3BucketLocation: us-east-1
+      s3BucketLocation: $REGION
       s3CachePath: gitlab-runner
       s3CacheInsecure: false
 
@@ -93,47 +90,50 @@ gitlab:
       enabled: false
       proxy_download: true
       bucket: git-lfs
-      connection: {}
-        # secret:
-        # key:
+      connection: 
+        secret: $BUCKET_SECRET
+        #key:
 
 # the following configurations should be overriden without the user caring, but I'm putting them here for now    
-
 
     artifacts:
       enabled: true
       proxy_download: true
       bucket: gitlab-artifacts
-      connection: {}
-        # secret:
+      connection: 
+        secret: $BUCKET_SECRET
         # key:
     uploads:
       enabled: true
       proxy_download: true
       bucket: gitlab-uploads
-      connection: {}
-        # secret:
+      connection:
+        secret: $BUCKET_SECRET
         # key:
     packages:
       enabled: true
       proxy_download: true
       bucket: gitlab-packages
-      connection: {}
+      connection: 
+        secret: $BUCKET_SECRET
     externalDiffs:
       when:
       proxy_download: true
       bucket: gitlab-mr-diffs
-      connection: {}
+      connection:
+        secret: $BUCKET_SECRET
 
     ## doc/charts/globals.md#pseudonymizer-settings
     pseudonymizer:
       configMap:
       bucket: gitlab-pseudo
-      connection: {}
-        # secret:
+      connection:
+        secret: $BUCKET_SECRET
         # key:
     backups:
       bucket: gitlab-backups
       tmpBucket: tmp
+      connection:
+        secret: $BUCKET_SECRET
 
-
+{{ .Values.rook | first | default .Values.rook.region }}

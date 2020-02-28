@@ -1,0 +1,4 @@
+export RELEASE_NAME="gitlab-rook"
+export NAMESPACE="default"
+export SECRET_NAME="gitlab-s3-secret"
+export REGION="us-east-1"
