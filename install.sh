@@ -7,7 +7,7 @@ source ./variables
 echo "running helm install"
 # install s3 objects without installing gitlab 
 # https://stackoverflow.com/questions/54032974/helm-conditionally-install-subchart
-helm install $RELEASE_NAME . --set gitlab.enabled=false --namespace=$NAMESPACE --dependency-update --atomic --debug --dry-run
+helm install $RELEASE_NAME . --set gitlab.enabled=false --namespace=$NAMESPACE --dependency-update --atomic --debug
 
 # get secret
 export bucketName=$( helm show values . --skip-headers | grep "^ *bucket:" | head -1 | awk '{print $2}' ) 
