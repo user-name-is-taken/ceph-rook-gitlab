@@ -6,8 +6,14 @@ replicaCount: 1
 
 # the region is used by s3
 rook:
-  region: $REGION
-  bucketsecret: $BUCKET_SECRET
+  region: &region us-east-1
+  bucketsecret: &bucket_secret $BUCKET_SECRET
+  aws_host: setBy_install.sh
+  aws_access_key_id: setBy_install.sh
+  aws_secret_access_key: setBy_install.sh
+# anchor notes: https://yaml.org/spec/1.2/spec.html
+
+# TODO replace $BUCKET_SECRET with yaml anchors https://confluence.atlassian.com/bitbucket/yaml-anchors-960154027.html
 
 imagePullSecrets: []
 nameOverride: ""
@@ -53,11 +59,9 @@ gitlab:
       cacheType: s3
       s3BucketName: runner-cache
       cacheShared: true
-      s3BucketLocation: $REGION
+      s3BucketLocation: *region
       s3CachePath: gitlab-runner
       s3CacheInsecure: false
-
-  global:
       ## GitLab operator is Alpha. Not for production use.
     operator:
       enabled: false
@@ -86,54 +90,43 @@ gitlab:
 
     ## doc/charts/globals.md#lfs-artifacts-uploads-packages-external-mr-diffs
     ## example storage settings: https://gitlab.com/gitlab-org/charts/gitlab/blob/master/examples/values-external-objectstorage.yaml
-    lfs:
-      enabled: false
+    
+    lfs: &storage-anchor
+      enabled: true
       proxy_download: true
       bucket: git-lfs
       connection: 
-        secret: $BUCKET_SECRET
-        #key:
+        secret: *bucket_secret
 
 # the following configurations should be overriden without the user caring, but I'm putting them here for now    
 
     artifacts:
-      enabled: true
-      proxy_download: true
+      <<: *storage-anchor
       bucket: gitlab-artifacts
-      connection: 
-        secret: $BUCKET_SECRET
-        # key:
+
     uploads:
-      enabled: true
-      proxy_download: true
+      <<: *storage-anchor
       bucket: gitlab-uploads
-      connection:
-        secret: $BUCKET_SECRET
-        # key:
+      
     packages:
       enabled: true
-      proxy_download: true
+      <<: *storage-anchor
       bucket: gitlab-packages
-      connection: 
-        secret: $BUCKET_SECRET
+      
     externalDiffs:
       when:
-      proxy_download: true
+      <<: *storage-anchor
       bucket: gitlab-mr-diffs
-      connection:
-        secret: $BUCKET_SECRET
 
     ## doc/charts/globals.md#pseudonymizer-settings
     pseudonymizer:
       configMap:
+      <<: *storage-anchor
       bucket: gitlab-pseudo
-      connection:
-        secret: $BUCKET_SECRET
         # key:
+    
     backups:
+      <<: *storage-anchor
       bucket: gitlab-backups
       tmpBucket: tmp
-      connection:
-        secret: $BUCKET_SECRET
-
-{{ .Values.rook | first | default .Values.rook.region }}
+      
