@@ -5,6 +5,7 @@ metadata:
   annotations:
     "helm.sh/hook": pre-install
     #https://helm.sh/docs/topics/charts_hooks/
+  namespace: {{ .Release.Namespace }}
 provisioner: ceph.rook.io/bucket
 reclaimPolicy: Delete
 parameters:
