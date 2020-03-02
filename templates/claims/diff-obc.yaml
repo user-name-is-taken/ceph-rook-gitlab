@@ -6,6 +6,7 @@ metadata:
   annotations:
     "helm.sh/hook": pre-install
     #https://helm.sh/docs/topics/charts_hooks/
+  namespace: {{ .Release.Namespace }}
 spec:
   bucketName: {{ .Values.gitlab.global.externalDiffs.bucket }}
   storageClassName: {{ .Release.Name -}} -s3-storage-class
