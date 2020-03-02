@@ -13,8 +13,6 @@ helm install $RELEASE_NAME . --set gitlab.enabled=false --namespace=$NAMESPACE -
 export bucketName=$( helm show values . --skip-headers | grep "^ *bucket:" | head -1 | awk '{print $2}' ) 
 export AWS_HOST=$(kubectl -n $NAMESPACE get cm $bucketName -o yaml | grep BUCKET_HOST | awk '{print $2}') 
 
-kubectl -n $NAMESPACE get cm $bucketName -o yaml
-
 # TODO: get the auto-generated secret name and replace "ceph-bucket" with it.
 export AWS_ACCESS_KEY_ID=$(kubectl -n $NAMESPACE get secret ceph-bucket -o yaml | grep AccessKey | awk '{print $2}' | base64 --decode) 
 export AWS_SECRET_ACCESS_KEY=$(kubectl -n $NAMESPACE get secret ceph-bucket -o yaml | grep SecretKey | awk '{print $2}' | base64 --decode)

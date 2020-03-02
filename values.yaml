@@ -47,22 +47,25 @@ gitlab:
     enabled: true
     rbac:
       create: true
-
-  ## Installation & configuration of gitlab/gitlab-runner
-  ## See requirements.yaml for current version
-  gitlab-runner:
-    install: true
   
-  runners:
-    locked: false
-    cache:
-      cacheType: s3
-      s3BucketName: runner-cache
-      cacheShared: true
-      s3BucketLocation: *region
-      s3CachePath: gitlab-runner
-      s3CacheInsecure: false
-      ## GitLab operator is Alpha. Not for production use.
+  global:
+    hosts:
+      https: false
+    
+    edition: ce
+    ingress:
+      enabled: false
+      tls:
+        enabled: false
+        
+    mino:
+      enabled: false
+
+    ## Installation & configuration of gitlab/gitlab-runner
+    ## See requirements.yaml for current version
+    gitlab-runner:
+      install: true
+    
     operator:
       enabled: false
       rollout:
@@ -72,61 +75,74 @@ gitlab:
         #   https://github.com/helm/helm/issues/3805
         autoPause: true
 
-    edition: ce
-    ingress:
-      configureCertmanager: false
-      # tls:
-      #   enabled: false
-    mino:
-      enabled: false
-
-###################################STORAGE STUFF###############################
-
-# according to this https://gitlab.com/gitlab-org/charts/gitlab/-/tree/master/doc/advanced/external-object-storage
-# each storage type needs its own bucket, but they can share a secret.
-# so you can probably use a shared user for all the buckets
-
-## object storage settings for future: https://docs.gitlab.com/ee/administration/job_artifacts.html#s3-compatible-connection-settings
-
-    ## doc/charts/globals.md#lfs-artifacts-uploads-packages-external-mr-diffs
-    ## example storage settings: https://gitlab.com/gitlab-org/charts/gitlab/blob/master/examples/values-external-objectstorage.yaml
+    runners:
+      locked: false
+      cache:
+        cacheType: s3
+        s3BucketName: runner-cache
+        cacheShared: true
+        s3BucketLocation: *region
+        s3CachePath: gitlab-runner
+        s3CacheInsecure: false
+        ## GitLab operator is Alpha. Not for production use.
     
-    lfs: &storage-anchor
-      enabled: true
-      proxy_download: true
-      bucket: git-lfs
-      connection: 
-        secret: *bucket_secret
 
-# the following configurations should be overriden without the user caring, but I'm putting them here for now    
 
-    artifacts:
-      <<: *storage-anchor
-      bucket: gitlab-artifacts
 
-    uploads:
-      <<: *storage-anchor
-      bucket: gitlab-uploads
+  ###################################STORAGE STUFF###############################
+
+  # according to this https://gitlab.com/gitlab-org/charts/gitlab/-/tree/master/doc/advanced/external-object-storage
+  # each storage type needs its own bucket, but they can share a secret.
+  # so you can probably use a shared user for all the buckets
+
+  ## object storage settings for future: https://docs.gitlab.com/ee/administration/job_artifacts.html#s3-compatible-connection-settings
+
+      ## doc/charts/globals.md#lfs-artifacts-uploads-packages-external-mr-diffs
+      ## example storage settings: https://gitlab.com/gitlab-org/charts/gitlab/blob/master/examples/values-external-objectstorage.yaml
+    appConfig:
+      lfs: &storage-anchor
+        enabled: true
+        proxy_download: true
+        bucket: git-lfs
+        connection: 
+          secret: *bucket_secret
+          key: connection
+
+  # the following configurations should be overriden without the user caring, but I'm putting them here for now    
+
+      artifacts:
+        <<: *storage-anchor
+        bucket: gitlab-artifacts
+
+      uploads:
+        <<: *storage-anchor
+        bucket: gitlab-uploads
+        
+      packages:
+        enabled: true
+        <<: *storage-anchor
+        bucket: gitlab-packages
+        
+      externalDiffs:
+        when:
+        <<: *storage-anchor
+        bucket: gitlab-mr-diffs
+
+      ## doc/charts/globals.md#pseudonymizer-settings
+      pseudonymizer:
+        # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#pseudonymizer-settings
+        configMap:
+        <<: *storage-anchor
+        bucket: gitlab-pseudo
+          # key:
       
-    packages:
-      enabled: true
-      <<: *storage-anchor
-      bucket: gitlab-packages
+      backups:
+        # <<: *storage-anchor
+        bucket: gitlab-backups
+        tmpBucket: tmp
       
-    externalDiffs:
-      when:
-      <<: *storage-anchor
-      bucket: gitlab-mr-diffs
+      omniauth:
+      #https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#omniauth
+        enabled: false
 
-    ## doc/charts/globals.md#pseudonymizer-settings
-    pseudonymizer:
-      configMap:
-      <<: *storage-anchor
-      bucket: gitlab-pseudo
-        # key:
-    
-    backups:
-      <<: *storage-anchor
-      bucket: gitlab-backups
-      tmpBucket: tmp
-      
+        

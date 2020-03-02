@@ -2,11 +2,11 @@
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
-  name: {{ .Values.gitlab.global.lfs.bucket }}
+  name: {{ .Values.gitlab.global.appConfig.lfs.bucket }}
   annotations:
     "helm.sh/hook": pre-install
     #https://helm.sh/docs/topics/charts_hooks/
   namespace: {{ .Release.Namespace }}
 spec:
-  bucketName: {{ .Values.gitlab.global.lfs.bucket }}
+  bucketName: {{ .Values.gitlab.global.appConfig.lfs.bucket }}
   storageClassName: {{ .Release.Name -}} -s3-storage-class
