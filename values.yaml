@@ -59,6 +59,7 @@ gitlab:
         enabled: false
         
     mino:
+      # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#configure-minio-settings
       enabled: false
 
     ## Installation & configuration of gitlab/gitlab-runner
@@ -100,15 +101,19 @@ gitlab:
       ## doc/charts/globals.md#lfs-artifacts-uploads-packages-external-mr-diffs
       ## example storage settings: https://gitlab.com/gitlab-org/charts/gitlab/blob/master/examples/values-external-objectstorage.yaml
     appConfig:
+
+      # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#configure-appconfig-settings
       lfs: &storage-anchor
+        # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#lfs-artifacts-uploads-packages-and-external-mr-diffs
         enabled: true
         proxy_download: true
         bucket: git-lfs
         connection: 
+          # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#connection
           secret: *bucket_secret
           key: connection
 
-  # the following configurations should be overriden without the user caring, but I'm putting them here for now    
+      # the following configurations should be overriden without the user caring, but I'm putting them here for now    
 
       artifacts:
         <<: *storage-anchor
@@ -119,7 +124,6 @@ gitlab:
         bucket: gitlab-uploads
         
       packages:
-        enabled: true
         <<: *storage-anchor
         bucket: gitlab-packages
         
@@ -145,4 +149,16 @@ gitlab:
       #https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#omniauth
         enabled: false
 
-        
+    
+    # TODO specify secrets for the below sections
+    # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#connection
+    gitlab:
+      task-runner:
+        backups:
+          config:
+            secret: s3cmd-config
+            key: config
+    registry:
+      storage:
+        secret: registry-storage
+        key: config
