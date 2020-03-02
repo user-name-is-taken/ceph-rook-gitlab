@@ -48,7 +48,22 @@ gitlab:
     rbac:
       create: true
   
+  # TODO specify secrets for the below sections
+  # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#connection
+  gitlab:
+    task-runner:
+      backups:
+        config:
+          secret: s3cmd-config
+          key: config
+  registry:
+    storage:
+      secret: registry-storage
+      key: config
+  
   global:
+    registry:
+      bucket: gitlab-registry-storage
     hosts:
       https: false
     
@@ -150,15 +165,3 @@ gitlab:
         enabled: false
 
     
-    # TODO specify secrets for the below sections
-    # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#connection
-    gitlab:
-      task-runner:
-        backups:
-          config:
-            secret: s3cmd-config
-            key: config
-    registry:
-      storage:
-        secret: registry-storage
-        key: config
