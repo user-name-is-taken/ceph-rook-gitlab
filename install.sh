@@ -1,5 +1,7 @@
 #! /bin/bash
 
+#TODO replace this script with an init container https://gitlab.com/gitlab-org/charts/gitlab/issues/1920
+
 source ./variables
 
 # note you can also do this with helm install's 
