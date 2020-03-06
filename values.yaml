@@ -7,10 +7,8 @@ replicaCount: 1
 # the region is used by s3
 rook:
   region: &region us-east-1
-  bucketsecret: &bucket_secret $BUCKET_SECRET
-  aws_host: setBy_install.sh
-  aws_access_key_id: setBy_install.sh
-  aws_secret_access_key: setBy_install.sh
+  bucketsecret: &bucket_secret $BUCKET_SECRET #change to configmap
+
 # anchor notes: https://yaml.org/spec/1.2/spec.html
 
 # TODO replace $BUCKET_SECRET with yaml anchors https://confluence.atlassian.com/bitbucket/yaml-anchors-960154027.html
@@ -40,11 +38,12 @@ tolerations: []
 affinity: {}
 
 gitlab:
-  ## TODO: EXTRAINITCONTAINERS IS THE MOST IMPORTANT PART OF THIS CHART
-  extraInitContainers:
-  - name: secret-parser
-    image: busybox:1.28
-    command: ['sh', '-c', 'echo parse the secrets here']
+    
+  
+  # aws_host: setBy_install.sh
+  # aws_access_key_id: setBy_install.sh
+  # aws_secret_access_key: setBy_install.sh
+
   ## Automatic shared secret generation
   ## doc/installation/secrets.md
   ## doc/charts/shared-secrets
@@ -56,11 +55,111 @@ gitlab:
   # TODO specify secrets for the below sections
   # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#connection
   gitlab:
+    unicorn: &init_cont
+      bucket_secret: *bucket_secret
+        ## Init containers configure gitlab's s3 credentials by altering these files in the pods. 
+        # 1. backups are in `~/.s3cfg` @ see https://s3tools.org/kb/item14.htm
+        # 2. appConfig bucket storage is in `` @ see
+      ## more references
+        # useful gitlab issue https://gitlab.com/gitlab-org/charts/gitlab/issues/1920
+        # 
+      extraInitContainers: |
+        - name: secret-parser
+          image: busybox:1.28
+          command: ['echo', '$S3_CONFIG', '|', 'envsubst', '|', '/etc/gitlab/objectstorage/ {{- .Chart.Name }}' ]
+          env:
+          - name: ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: secretname #user secret name
+                key: accesskey-key #accesskey?
+          - name: SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: secretname #user secret name
+                key: secretkey-key #secretkey?
+          - name: AWS_HOST
+            valueFrom:
+              secretKeyRef:
+                name: secretname #user secret name
+                key: host-key #user host key
+          - name: S3_CONFIG
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Values.bucket_secret }}
+                key: connection
+    gitaly:
+      <<: *init_cont
+
+    gitlab-shell:
+      <<: *init_cont
+    
+    mailroom:
+      <<: *init_cont
+    
+    migrations:
+      <<: *init_cont
+    
+    sidekiq:
+      <<: *init_cont
+    
     task-runner:
-      backups:
-        config:
-          secret: s3cmd-config
-          key: config
+      <<: *init_cont
+    
+        # TODO specify secrets for the below sections
+  # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#connection
+  gitlab:
+    unicorn: &init_cont
+      bucket_secret: *bucket_secret
+        ## Init containers configure gitlab's s3 credentials by altering these files in the pods. 
+        # 1. backups are in `~/.s3cfg` @ see https://s3tools.org/kb/item14.htm
+        # 2. appConfig bucket storage is in `` @ see
+      ## more references
+        # useful gitlab issue https://gitlab.com/gitlab-org/charts/gitlab/issues/1920
+        # 
+      extraInitContainers: |
+        - name: secret-parser
+          image: busybox:1.28
+          command: ['echo', '$S3_CONFIG', '|', 'envsubst', '|', '/etc/gitlab/objectstorage/ {{- .Chart.Name }}' ]
+          env:
+          - name: ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: secretname #user secret name
+                key: accesskey-key #accesskey?
+          - name: SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: secretname #user secret name
+                key: secretkey-key #secretkey?
+          - name: AWS_HOST
+            valueFrom:
+              secretKeyRef:
+                name: secretname #user secret name
+                key: host-key #user host key
+          - name: S3_CONFIG
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Values.bucket_secret }}
+                key: connection
+    gitaly:
+      <<: *init_cont
+
+    gitlab-shell:
+      <<: *init_cont
+    
+    mailroom:
+      <<: *init_cont
+    
+    migrations:
+      <<: *init_cont
+    
+    sidekiq:
+      <<: *init_cont
+    
+    task-runner:
+      <<: *init_cont
+    
   registry:
     storage:
       secret: registry-storage
@@ -134,6 +233,7 @@ gitlab:
           # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#connection
           secret: *bucket_secret
           key: connection
+        
 
       # the following configurations should be overriden without the user caring, but I'm putting them here for now    
 

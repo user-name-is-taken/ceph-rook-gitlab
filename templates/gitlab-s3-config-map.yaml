@@ -1,0 +1,12 @@
+apiVersion: v1
+metadata:
+  name: {{ .Values.rook.bucketsecret }}
+  namespace: {{ .Release.Namespace }}
+data:
+  connection: |-
+    aws_access_key_id: $ACCESS_KEY
+    aws_secret_access_key: $SECRET_KEY
+    host: $AWS_HOST
+    provider: AWS
+    region: {{ .Values.rook.region }}
+kind: ConfigMap

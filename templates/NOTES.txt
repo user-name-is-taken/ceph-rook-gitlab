@@ -1,3 +1,6 @@
 This file creates rook buckets for gitlab 
 
 To create a bucket, the ObjectBucketClaim (obc) asks the bucket StorageClass to create an s3 bucket in rook. Then an ObjectBucket (ob) is created in kubernetes to manage the s3 bucket.
+
+
+Init containers are used to  configure gitlab's s3 credentials.
