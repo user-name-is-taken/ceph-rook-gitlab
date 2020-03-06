@@ -7,7 +7,8 @@ replicaCount: 1
 # the region is used by s3
 rook:
   region: &region us-east-1
-  bucketsecret: &bucket_secret $BUCKET_SECRET #change to configmap
+  s3config: &s3config gitlab-s3-config-map #change to configmap from 
+  user: &rook-user gitlab-s3-user
 
 # anchor notes: https://yaml.org/spec/1.2/spec.html
 
@@ -56,7 +57,7 @@ gitlab:
   # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#connection
   gitlab:
     unicorn: &init_cont
-      bucket_secret: *bucket_secret
+      s3config: *s3config
         ## Init containers configure gitlab's s3 credentials by altering these files in the pods. 
         # 1. backups are in `~/.s3cfg` @ see https://s3tools.org/kb/item14.htm
         # 2. appConfig bucket storage is in `` @ see
@@ -86,7 +87,7 @@ gitlab:
           - name: S3_CONFIG
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.bucket_secret }}
+                name: {{ .Values.s3config }}
                 key: connection
     gitaly:
       <<: *init_cont
@@ -110,37 +111,38 @@ gitlab:
   # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#connection
   gitlab:
     unicorn: &init_cont
-      bucket_secret: *bucket_secret
-        ## Init containers configure gitlab's s3 credentials by altering these files in the pods. 
+      s3config: *s3config
+      user: *rook-user
+        ## Init containers configure gitlab's s3 credentials by altering these files in the pods with keys from the ceph user
         # 1. backups are in `~/.s3cfg` @ see https://s3tools.org/kb/item14.htm
-        # 2. appConfig bucket storage is in `` @ see
+        # 2. appConfig bucket storage is in `/etc/gitlab/objectstorage/*` @ see https://gitlab.com/gitlab-org/charts/gitlab/issues/1920
       ## more references
-        # useful gitlab issue https://gitlab.com/gitlab-org/charts/gitlab/issues/1920
-        # 
+        # gitlab issue https://gitlab.com/gitlab-org/charts/gitlab/issues/1920
+        # rook docs: https://rook.io/docs/rook/v1.2/ceph-object.html
       extraInitContainers: |
         - name: secret-parser
           image: busybox:1.28
-          command: ['echo', '$S3_CONFIG', '|', 'envsubst', '|', '/etc/gitlab/objectstorage/ {{- .Chart.Name }}' ]
+          command: ['echo', '$S3_CONFIG', '|', 'envsubst', '|', "tee", '/etc/gitlab/objectstorage/artifacts', '/etc/gitlab/objectstorage/lfs', "/etc/gitlab/objectstorage/uploads", "/etc/gitlab/objectstorage/packages", "/etc/gitlab/objectstorage/external_diffs" ]
           env:
           - name: ACCESS_KEY
             valueFrom:
               secretKeyRef:
                 name: secretname #user secret name
-                key: accesskey-key #accesskey?
+                key: AccessKey #accesskey?
           - name: SECRET_KEY
             valueFrom:
               secretKeyRef:
-                name: secretname #user secret name
-                key: secretkey-key #secretkey?
+                name: {{ printf "%s-object-user-%s-store-%s" .Release.Namespace .Release.Name .Values.user }}
+                key: SecretKey 
           - name: AWS_HOST
             valueFrom:
               secretKeyRef:
-                name: secretname #user secret name
+                name: {{ printf "%s-object-user-%s-store-%s" .Release.Namespace .Release.Name .Values.user }}
                 key: host-key #user host key
           - name: S3_CONFIG
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.bucket_secret }}
+                name: {{ .Values.s3config }}
                 key: connection
     gitaly:
       <<: *init_cont
@@ -233,7 +235,7 @@ gitlab:
           # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#connection
           secret: *bucket_secret
           key: connection
-        
+          
 
       # the following configurations should be overriden without the user caring, but I'm putting them here for now    
 

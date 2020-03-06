@@ -3,7 +3,7 @@ apiVersion: ceph.rook.io/v1
 kind: CephObjectStoreUser
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: gitlab-s3-user
+  name: {{ .Values.rook.user }}
   annotations:
     "helm.sh/hook": pre-install
 spec:
