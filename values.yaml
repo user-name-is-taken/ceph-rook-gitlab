@@ -59,6 +59,7 @@ gitlab:
     unicorn: &init_cont
       s3config: *s3config
       user: *rook-user
+      lfs_bucket: &lfs_bucket_name git-lfs # passing in this bucket so I can find the host name.
         ## Init containers configure gitlab's s3 credentials by altering these files in the pods with keys from the ceph user
         # 1. backups are in `~/.s3cfg` @ see https://s3tools.org/kb/item14.htm
         # 2. appConfig bucket storage is in `/etc/gitlab/objectstorage/*` @ see https://gitlab.com/gitlab-org/charts/gitlab/issues/1920
@@ -73,7 +74,7 @@ gitlab:
           - name: ACCESS_KEY
             valueFrom:
               secretKeyRef:
-                name: secretname #user secret name
+                name: {{ printf "%s-object-user-%s-store-%s" .Release.Namespace .Release.Name .Values.user }}
                 key: AccessKey #accesskey?
           - name: SECRET_KEY
             valueFrom:
@@ -82,9 +83,9 @@ gitlab:
                 key: SecretKey 
           - name: AWS_HOST
             valueFrom:
-              secretKeyRef:
-                name: {{ printf "%s-object-user-%s-store-%s" .Release.Namespace .Release.Name .Values.user }}
-                key: host-key #user host key
+              configMapKeyRef:
+                name: {{ .Values.lfs_bucket_name }}
+                key: BUCKET_HOST #user host key
           - name: S3_CONFIG
             valueFrom:
               configMapKeyRef:
@@ -176,7 +177,7 @@ gitlab:
         # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#lfs-artifacts-uploads-packages-and-external-mr-diffs
         enabled: true
         proxy_download: true
-        bucket: git-lfs
+        bucket: *lfs_bucket_name
         connection: 
           # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#connection
           secret: *s3config # TODO: change this
