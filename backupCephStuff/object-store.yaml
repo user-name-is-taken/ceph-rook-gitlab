@@ -1,8 +1,10 @@
+# view with `kubectl get cephobjectstore -n <namespace>`
+
 apiVersion: ceph.rook.io/v1
 kind: CephObjectStore
 metadata:
   name: {{ .Release.Name }}-store
-  namespace: {{ .Release.Namespace }}
+  namespace: rook-ceph #{{ .Release.Namespace }}
   annotations:
     "helm.sh/hook": pre-install
     #https://helm.sh/docs/topics/charts_hooks/
