@@ -3,7 +3,7 @@
 apiVersion: ceph.rook.io/v1
 kind: CephObjectStore
 metadata:
-  name: {{ .Release.Name }}-store
+  name: git-store
   namespace: rook-ceph #{{ .Release.Namespace }}
   annotations:
     "helm.sh/hook": pre-install

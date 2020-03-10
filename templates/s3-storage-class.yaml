@@ -9,6 +9,6 @@ metadata:
 provisioner: ceph.rook.io/bucket
 reclaimPolicy: Delete
 parameters:
-  objectStoreName: {{ .Release.Name }}-store
-  objectStoreNamespace: {{ .Release.Namespace }}
+  objectStoreName: {{ .Values.rook.storename }}
+  objectStoreNamespace: {{ .Values.rook.storenamespace }}
   region: {{ .Values.rook.region }}
