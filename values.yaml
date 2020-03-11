@@ -50,8 +50,11 @@ rook:
 # affinity: {}
 
 gitlab:
-    
   
+  # https://gitlab.com/gitlab-org/charts/gitlab/-/issues/1898
+  certmanager:
+    createCustomResource: false
+
   # aws_host: setBy_install.sh
   # aws_access_key_id: setBy_install.sh
   # aws_secret_access_key: setBy_install.sh
