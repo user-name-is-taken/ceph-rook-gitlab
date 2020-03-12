@@ -87,7 +87,8 @@ gitlab:
       extraInitContainers: |
         - name: artifacts
           image: busybox:1.28
-          command: ['echo', '$S3_CONFIG', '|', 'envsubst', '|', "tee", '/etc/gitlab/objectstorage/artifacts' ]
+          command:  ['echo', '$S3_CONFIG', '|', "tee", '/etc/gitlab/objectstorage/artifacts' ]
+          #['echo', '$S3_CONFIG', '|', 'envsubst', '|', "tee", '/etc/gitlab/objectstorage/artifacts' ]
           env:
           - name: ACCESS_KEY
             valueFrom:
@@ -111,13 +112,14 @@ gitlab:
                 key: AWS_SECRET_ACCESS_KEY
         - name: uploads
           image: busybox:1.28
-          command: ['echo', '$S3_CONFIG', '|', 'envsubst', '|', "tee", "/etc/gitlab/objectstorage/uploads" ]
+          command: ['echo', '$S3_CONFIG', '|', "tee", '/etc/gitlab/objectstorage/artifacts' ]
+          #['echo', '$S3_CONFIG', '|', 'envsubst', '|', "tee", "/etc/gitlab/objectstorage/uploads" ]
           env:
           - name: ACCESS_KEY
             valueFrom:
               secretKeyRef:
                 name: {{ .Values.buckets.uploads }}
-                key: AccessKey #accesskey?
+                key: AWS_ACCESS_KEY_ID #accesskey?
           - name: AWS_HOST
             valueFrom:
               configMapKeyRef:
@@ -131,32 +133,8 @@ gitlab:
           - name: SECRET_KEY
             valueFrom:
               secretKeyRef:
-                name: {{ .Values.buckets.uploads }}
-                key: SecretKey
-        - name: packages
-          image: busybox:1.28
-          command: ['echo', '$S3_CONFIG', '|', 'envsubst', '|', "tee", "/etc/gitlab/objectstorage/packages" ]
-          env:
-          - name: ACCESS_KEY
-            valueFrom:
-              secretKeyRef:
                 name: {{ .Values.buckets.packages }}
-                key: AccessKey #accesskey?
-          - name: AWS_HOST
-            valueFrom:
-              configMapKeyRef:
-                name: {{ .Values.buckets.packages }}
-                key: BUCKET_HOST
-          - name: S3_CONFIG
-            valueFrom:
-              configMapKeyRef:
-                name: {{ .Values.s3config }}
-                key: connection
-          - name: SECRET_KEY
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Values.buckets.packages }}
-                key: SecretKey
+                key: AWS_SECRET_ACCESS_KEY
         - name: externaldiffs
           image: busybox:1.28
           command: ['echo', '$S3_CONFIG', '|', 'envsubst', '|', "tee", "/etc/gitlab/objectstorage/external_diffs" ]
@@ -165,7 +143,7 @@ gitlab:
             valueFrom:
               secretKeyRef:
                 name: {{ .Values.buckets.externalDiffs }}
-                key: AccessKey
+                key: AWS_ACCESS_KEY_ID #accesskey?
           - name: AWS_HOST
             valueFrom:
               configMapKeyRef:
@@ -180,7 +158,7 @@ gitlab:
             valueFrom:
               secretKeyRef:
                 name: {{ .Values.buckets.externalDiffs }}
-                key: SecretKey
+                key: AWS_SECRET_ACCESS_KEY
         - name: lfs
           image: busybox:1.28
           command: ['echo', '$S3_CONFIG', '|', 'envsubst', '|', "tee", "/etc/gitlab/objectstorage/lfs" ]
@@ -189,7 +167,7 @@ gitlab:
             valueFrom:
               secretKeyRef:
                 name: {{ .Values.buckets.lfs }}
-                key: AccessKey #accesskey?
+                key: AWS_ACCESS_KEY_ID #accesskey?
           - name: AWS_HOST
             valueFrom:
               configMapKeyRef:
@@ -204,7 +182,7 @@ gitlab:
             valueFrom:
               secretKeyRef:
                 name: {{ .Values.buckets.lfs }}
-                key: SecretKey
+                key: AWS_SECRET_ACCESS_KEY
         - name: pseudo
           image: busybox:1.28
           command: ['echo', '$S3_CONFIG', '|', 'envsubst', '|', "tee", "/etc/gitlab/objectstorage/pseudonymizer" ]
@@ -213,7 +191,7 @@ gitlab:
             valueFrom:
               secretKeyRef:
                 name: {{ .Values.buckets.pseudonymizer }}
-                key: AccessKey
+                key: AWS_ACCESS_KEY_ID 
           - name: AWS_HOST
             valueFrom:
               configMapKeyRef:
@@ -228,7 +206,7 @@ gitlab:
             valueFrom:
               secretKeyRef:
                 name: {{ .Values.buckets.pseudonymizer }}
-                key: SecretKey
+                key: AWS_SECRET_ACCESS_KEY
 
     gitaly:
       <<: *init_cont
@@ -321,10 +299,10 @@ gitlab:
         enabled: true
         proxy_download: true
         bucket: *lfs
-        connection: 
+        connection: {}
           # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#connection
-          secret: *s3config # TODO: change this
-          key: connection
+          # secret: *s3config # TODO: change this
+          # key: connection
           
 
       # the following configurations should be overriden without the user caring, but I'm putting them here for now    
