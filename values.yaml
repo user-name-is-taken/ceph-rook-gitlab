@@ -51,6 +51,7 @@ rook:
 
 gitlab:
   
+  # TODO: remove this. It's only in here because I was having issues.
   # https://gitlab.com/gitlab-org/charts/gitlab/-/issues/1898
   certmanager:
     createCustomResource: false
@@ -121,7 +122,7 @@ gitlab:
             valueFrom:
               configMapKeyRef:
                 name: {{ .Values.buckets.uploads }}
-                key: BUCKET_HOST #user host key
+                key: BUCKET_HOST
           - name: S3_CONFIG
             valueFrom:
               configMapKeyRef:
@@ -145,7 +146,7 @@ gitlab:
             valueFrom:
               configMapKeyRef:
                 name: {{ .Values.buckets.packages }}
-                key: BUCKET_HOST #user host key
+                key: BUCKET_HOST
           - name: S3_CONFIG
             valueFrom:
               configMapKeyRef:
@@ -164,12 +165,12 @@ gitlab:
             valueFrom:
               secretKeyRef:
                 name: {{ .Values.buckets.externalDiffs }}
-                key: AccessKey #accesskey?
+                key: AccessKey
           - name: AWS_HOST
             valueFrom:
               configMapKeyRef:
                 name: {{ .Values.buckets.externalDiffs }}
-                key: BUCKET_HOST #user host key
+                key: BUCKET_HOST
           - name: S3_CONFIG
             valueFrom:
               configMapKeyRef:
@@ -193,7 +194,7 @@ gitlab:
             valueFrom:
               configMapKeyRef:
                 name: {{ .Values.buckets.lfs }}
-                key: BUCKET_HOST #user host key
+                key: BUCKET_HOST
           - name: S3_CONFIG
             valueFrom:
               configMapKeyRef:
@@ -211,13 +212,13 @@ gitlab:
           - name: ACCESS_KEY
             valueFrom:
               secretKeyRef:
-                name: {{ .Values.buckets.pseudo }}
-                key: AccessKey #accesskey?
+                name: {{ .Values.buckets.pseudonymizer }}
+                key: AccessKey
           - name: AWS_HOST
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.buckets.pseudo }}
-                key: BUCKET_HOST #user host key
+                name: {{ .Values.buckets.pseudonymizer }}
+                key: BUCKET_HOST
           - name: S3_CONFIG
             valueFrom:
               configMapKeyRef:
@@ -226,7 +227,7 @@ gitlab:
           - name: SECRET_KEY
             valueFrom:
               secretKeyRef:
-                name: {{ .Values.buckets.pseudo }}
+                name: {{ .Values.buckets.pseudonymizer }}
                 key: SecretKey
 
     gitaly:

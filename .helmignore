@@ -23,3 +23,5 @@
 .vscode/
 
 */registry-secret.yaml
+
+backupCephStuff/*
