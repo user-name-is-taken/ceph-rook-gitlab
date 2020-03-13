@@ -7,7 +7,7 @@ replicaCount: 1
 # the region is used by s3
 rook:
   region: &region us-east-1
-  s3config: &s3config gitlab-s3-config-map #change to configmap from 
+  s3secret: &s3secret gitlab-s3-secret #change to configmap from 
   storename: git-store
   storenamespace: rook-ceph
 
@@ -55,6 +55,12 @@ gitlab:
   # https://gitlab.com/gitlab-org/charts/gitlab/-/issues/1898
   certmanager:
     createCustomResource: false
+    install: false
+    rbac:
+      create: false
+    serviceAccount:
+      create: false
+    
 
   # aws_host: setBy_install.sh
   # aws_access_key_id: setBy_install.sh
@@ -72,7 +78,7 @@ gitlab:
   # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#connection
   gitlab:
     unicorn: &init_cont
-      s3config: *s3config
+      s3secret: *s3secret
       buckets:
         <<: *buckets
 
@@ -100,11 +106,6 @@ gitlab:
               configMapKeyRef:
                 name: {{ .Values.buckets.artifacts }}
                 key: BUCKET_HOST #user host key
-          - name: S3_CONFIG
-            valueFrom:
-              configMapKeyRef:
-                name: {{ .Values.s3config }}
-                key: connection
           - name: SECRET_KEY
             valueFrom:
               secretKeyRef:
@@ -112,8 +113,7 @@ gitlab:
                 key: AWS_SECRET_ACCESS_KEY
         - name: uploads
           image: busybox:1.28
-          command: ['echo', '$S3_CONFIG', '|', "tee", '/etc/gitlab/objectstorage/artifacts' ]
-          #['echo', '$S3_CONFIG', '|', 'envsubst', '|', "tee", "/etc/gitlab/objectstorage/uploads" ]
+          command: ['cat', '/etc/gitlab/objectstorage/uploads', '|', 'envsubst', '|', "tee", "/etc/gitlab/objectstorage/uploads" ]
           env:
           - name: ACCESS_KEY
             valueFrom:
@@ -125,19 +125,14 @@ gitlab:
               configMapKeyRef:
                 name: {{ .Values.buckets.uploads }}
                 key: BUCKET_HOST
-          - name: S3_CONFIG
-            valueFrom:
-              configMapKeyRef:
-                name: {{ .Values.s3config }}
-                key: connection
           - name: SECRET_KEY
             valueFrom:
               secretKeyRef:
-                name: {{ .Values.buckets.packages }}
+                name: {{ .Values.buckets.uploads }}
                 key: AWS_SECRET_ACCESS_KEY
         - name: externaldiffs
           image: busybox:1.28
-          command: ['echo', '$S3_CONFIG', '|', 'envsubst', '|', "tee", "/etc/gitlab/objectstorage/external_diffs" ]
+          command: ['cat', '/etc/gitlab/objectstorage/external_diffs', '|', 'envsubst', '|', "tee", "/etc/gitlab/objectstorage/external_diffs" ]
           env:
           - name: ACCESS_KEY
             valueFrom:
@@ -149,11 +144,6 @@ gitlab:
               configMapKeyRef:
                 name: {{ .Values.buckets.externalDiffs }}
                 key: BUCKET_HOST
-          - name: S3_CONFIG
-            valueFrom:
-              configMapKeyRef:
-                name: {{ .Values.s3config }}
-                key: connection
           - name: SECRET_KEY
             valueFrom:
               secretKeyRef:
@@ -161,7 +151,7 @@ gitlab:
                 key: AWS_SECRET_ACCESS_KEY
         - name: lfs
           image: busybox:1.28
-          command: ['echo', '$S3_CONFIG', '|', 'envsubst', '|', "tee", "/etc/gitlab/objectstorage/lfs" ]
+          command: ['cat', '/etc/gitlab/objectstorage/lfs', '|', 'envsubst', '|', "tee", "/etc/gitlab/objectstorage/lfs" ]
           env:
           - name: ACCESS_KEY
             valueFrom:
@@ -173,11 +163,6 @@ gitlab:
               configMapKeyRef:
                 name: {{ .Values.buckets.lfs }}
                 key: BUCKET_HOST
-          - name: S3_CONFIG
-            valueFrom:
-              configMapKeyRef:
-                name: {{ .Values.s3config }}
-                key: connection
           - name: SECRET_KEY
             valueFrom:
               secretKeyRef:
@@ -185,7 +170,7 @@ gitlab:
                 key: AWS_SECRET_ACCESS_KEY
         - name: pseudo
           image: busybox:1.28
-          command: ['echo', '$S3_CONFIG', '|', 'envsubst', '|', "tee", "/etc/gitlab/objectstorage/pseudonymizer" ]
+          command: ['cat', '/etc/gitlab/objectstorage/pseudonymizer', '|', 'envsubst', '|', "tee", "/etc/gitlab/objectstorage/pseudonymizer" ]
           env:
           - name: ACCESS_KEY
             valueFrom:
@@ -197,11 +182,6 @@ gitlab:
               configMapKeyRef:
                 name: {{ .Values.buckets.pseudonymizer }}
                 key: BUCKET_HOST
-          - name: S3_CONFIG
-            valueFrom:
-              configMapKeyRef:
-                name: {{ .Values.s3config }}
-                key: connection
           - name: SECRET_KEY
             valueFrom:
               secretKeyRef:
@@ -268,7 +248,7 @@ gitlab:
         autoPause: true
 
     runners:
-      locked: false
+      locked: true
       cache:
         cacheType: s3
         s3BucketName: runner-cache
@@ -299,10 +279,10 @@ gitlab:
         enabled: true
         proxy_download: true
         bucket: *lfs
-        connection: {}
+        connection: 
           # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#connection
-          # secret: *s3config # TODO: change this
-          # key: connection
+          secret: *s3secret 
+          key: connection
           
 
       # the following configurations should be overriden without the user caring, but I'm putting them here for now    

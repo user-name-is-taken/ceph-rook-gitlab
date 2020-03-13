@@ -4,3 +4,5 @@ To create a bucket, the ObjectBucketClaim (obc) asks the bucket StorageClass to 
 
 
 Init containers are used to  configure gitlab's s3 credentials.
+
+This requires an existing object store.
