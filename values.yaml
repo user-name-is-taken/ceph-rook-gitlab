@@ -13,7 +13,7 @@ rook:
 
   buckets: &buckets
     lfs: &lfs lfs
-    artifacts: &artifacts artifacts
+    artifacts: &artifacts artifactsbucket
     uploads: &uploads uploads        
     packages: &packages packages
     externalDiffs: &externalDiffs diffs
@@ -55,11 +55,11 @@ gitlab:
   # https://gitlab.com/gitlab-org/charts/gitlab/-/issues/1898
   certmanager:
     createCustomResource: false
-    install: false
-    rbac:
-      create: false
-    serviceAccount:
-      create: false
+  #   install: false
+  #   rbac:
+  #     create: false
+  #   serviceAccount:
+  #     create: false
     
 
   # aws_host: setBy_install.sh
@@ -93,7 +93,7 @@ gitlab:
       extraInitContainers: |
         - name: artifacts
           image: busybox:1.28
-          command:  ['echo', '$S3_CONFIG', '|', "tee", '/etc/gitlab/objectstorage/artifacts' ]
+          command:  ["cat", '/etc/gitlab/objectstorage/artifacts', '|', 'envsubst', '|', "tee", '/etc/gitlab/objectstorage/artifacts' ]
           #['echo', '$S3_CONFIG', '|', 'envsubst', '|', "tee", '/etc/gitlab/objectstorage/artifacts' ]
           env:
           - name: ACCESS_KEY
@@ -214,19 +214,27 @@ gitlab:
   #     key: config
   
   global:
+    edition: ce
     #registry:
       # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#configure-registry-settings
       #enabled: false
       #bucket: gitlab-registry-storage
     hosts:
+      # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#configure-host-settings
       https: false
-    
-    edition: ce
+      #domain: 172.16.10.202
+  
     ingress:
       configureCertmanager: false
-      enabled: false
+      enabled: true
       tls:
         enabled: false
+      gitlab:
+        https: false
+      registry:
+        https: false
+      minio:
+        https: false
         
         
     mino:
@@ -240,6 +248,7 @@ gitlab:
     
     operator:
       enabled: false
+      # https://docs.gitlab.com/charts/installation/operator.html
       rollout:
         # Enables automatic pause for deployment rollout. This must be set to `true` to fix
         # Helm's issue with 3-way merge. See:

@@ -6,3 +6,13 @@ To create a bucket, the ObjectBucketClaim (obc) asks the bucket StorageClass to 
 Init containers are used to  configure gitlab's s3 credentials.
 
 This requires an existing object store.
+
+To debug this chart the following commands might help:
+
+# get the chart's yaml output with: 
+
+helm template git . --dry-run > file.yaml
+
+# get the containers in a pod with:
+
+kubectl get pods git-unicorn-6b5c58cf5c-5zx86 -o jsonpath={.items[*].spec.containers[*].name}
