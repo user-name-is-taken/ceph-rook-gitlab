@@ -1,0 +1,15 @@
+apiVersion: v1
+data:
+  connection: |
+    aws_access_key_id: $ACCESS_KEY
+    aws_secret_access_key: $SECRET_KEY
+    host: $AWS_HOST
+    provider: AWS
+    region: {{ .Values.rook.region }}
+kind: ConfigMap
+metadata:
+  name: connection-config
+  namespace: default
+
+# templating works. you can see it with:
+# helm template git . --dry-run | les
