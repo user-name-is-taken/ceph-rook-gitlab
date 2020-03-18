@@ -92,6 +92,8 @@ gitlab:
         - name: connection
           configMap:
             name: {{ .Values.s3config }}
+        - name: objectstorage
+          emptyDir: {}
 
       ## Init containers configure gitlab's s3 credentials by altering these files in the pods with keys from the ceph user
       # 1. backups are in `~/.s3cfg` @ see https://s3tools.org/kb/item14.htm
@@ -101,8 +103,8 @@ gitlab:
         # rook docs: https://rook.io/docs/rook/v1.2/ceph-object.html
       extraInitContainers: |
         - name: artifacts
-          image: busybox:1.28
-          command:  [ "/bin/sh", "-c", "cat /etc/gitlab/objectstorage/connection | envsubst | tee /etc/gitlab/objectstorage/artifacts" ]
+          image: bhgedigital/envsubst:latest
+          command:  [ "/bin/sh", "-c", "cat /connection | envsubst | tee /etc/gitlab/objectstorage/artifacts" ]
           env:
           - name: ACCESS_KEY
             valueFrom:
@@ -121,11 +123,15 @@ gitlab:
                 key: AWS_SECRET_ACCESS_KEY
           volumeMounts:
           - name: connection
-            mountPath: "/etc/gitlab/objectstorage/"
+            mountPath: "/connection"
+            subPath: connection
             readOnly: true
+          - name: objectstorage
+            mountPath: "/etc/gitlab/objectstorage/"
+          
         - name: uploads
-          image: busybox:1.28
-          command: [ "/bin/sh", "-c", "cat /etc/gitlab/objectstorage/connection | envsubst | tee /etc/gitlab/objectstorage/uploads" ]
+          image: bhgedigital/envsubst:latest
+          command: [ "/bin/sh", "-c", "cat /connection | envsubst | tee /etc/gitlab/objectstorage/uploads" ]
           env:
           - name: ACCESS_KEY
             valueFrom:
@@ -142,9 +148,16 @@ gitlab:
               secretKeyRef:
                 name: {{ .Values.buckets.uploads }}
                 key: AWS_SECRET_ACCESS_KEY
+          volumeMounts:
+          - name: connection
+            mountPath: "/connection"
+            subPath: connection
+            readOnly: true
+          - name: objectstorage
+            mountPath: "/etc/gitlab/objectstorage/"
         - name: externaldiffs
-          image: busybox:1.28
-          command: [ "/bin/sh", "-c", "cat /etc/gitlab/objectstorage/connection | envsubst | tee /etc/gitlab/objectstorage/external_diffs" ]
+          image: bhgedigital/envsubst:latest
+          command: [ "/bin/sh", "-c", "cat /connection | envsubst | tee /etc/gitlab/objectstorage/external_diffs" ]
           env:
           - name: ACCESS_KEY
             valueFrom:
@@ -163,11 +176,14 @@ gitlab:
                 key: AWS_SECRET_ACCESS_KEY
           volumeMounts:
           - name: connection
-            mountPath: "/etc/gitlab/objectstorage/"
+            mountPath: "/connection"
+            subPath: connection
             readOnly: true
+          - name: objectstorage
+            mountPath: "/etc/gitlab/objectstorage/"
         - name: lfs
-          image: busybox:1.28
-          command: [ "/bin/sh", "-c", "cat /etc/gitlab/objectstorage/connection | envsubst | tee /etc/gitlab/objectstorage/lfs" ]
+          image: bhgedigital/envsubst:latest
+          command: [ "/bin/sh", "-c", "cat /connection | envsubst | tee /etc/gitlab/objectstorage/lfs" ]
           env:
           - name: ACCESS_KEY
             valueFrom:
@@ -186,11 +202,14 @@ gitlab:
                 key: AWS_SECRET_ACCESS_KEY
           volumeMounts:
           - name: connection
-            mountPath: "/etc/gitlab/objectstorage/"
+            mountPath: "/connection"
+            subPath: connection
             readOnly: true
+          - name: objectstorage
+            mountPath: "/etc/gitlab/objectstorage/"
         - name: pseudo
-          image: busybox:1.28
-          command: [ "/bin/sh", "-c", "cat /etc/gitlab/objectstorage/connection | envsubst | tee /etc/gitlab/objectstorage/pseudonymizer" ]
+          image: bhgedigital/envsubst:latest
+          command: [ "/bin/sh", "-c", "cat /connection | envsubst | tee /etc/gitlab/objectstorage/pseudonymizer" ]
           env:
           - name: ACCESS_KEY
             valueFrom:
@@ -209,8 +228,11 @@ gitlab:
                 key: AWS_SECRET_ACCESS_KEY
           volumeMounts:
           - name: connection
-            mountPath: "/etc/gitlab/objectstorage/"
+            mountPath: "/connection"
+            subPath: connection
             readOnly: true
+          - name: objectstorage
+            mountPath: "/etc/gitlab/objectstorage/"
 
     gitaly:
       <<: *init_cont
@@ -261,7 +283,7 @@ gitlab:
         https: false
         
         
-    mino:
+    minio:
       # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#configure-minio-settings
       enabled: false
 
