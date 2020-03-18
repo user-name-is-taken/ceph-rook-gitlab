@@ -7,7 +7,7 @@ replicaCount: 1
 # the region is used by s3
 rook:
   region: &region us-east-1
-  s3secret: &s3secret gitlab-s3-secret #change to configmap from 
+  s3config: &s3config connection-config #change to configmap from 
   storename: git-store
   storenamespace: rook-ceph
 
@@ -78,20 +78,20 @@ gitlab:
   # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#connection
   gitlab:
     unicorn: &init_cont
-      s3secret: *s3secret
+      s3config: *s3config
       buckets:
         <<: *buckets
 
       # '/etc/gitlab/objectstorage/lfs', "/etc/gitlab/objectstorage/uploads",
       extraVolumeMounts: |
         - name: connection
-          mountPath: /etc/gitlab/objectstorage/connection
+          mountPath: /etc/gitlab/objectstorage/
           readOnly: true
       
       extraVolumes: |
         - name: connection
           configMap:
-            name: connection-config
+            name: {{ .Values.s3config }}
             items:
               - key: connection
                 path: connection

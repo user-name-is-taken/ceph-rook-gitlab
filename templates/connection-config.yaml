@@ -8,7 +8,7 @@ data:
     region: {{ .Values.rook.region }}
 kind: ConfigMap
 metadata:
-  name: connection-config
+  name: {{ .Values.rook.s3config }}
   namespace: default
 
 # templating works. you can see it with:
