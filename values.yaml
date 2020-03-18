@@ -83,18 +83,15 @@ gitlab:
         <<: *buckets
 
       # '/etc/gitlab/objectstorage/lfs', "/etc/gitlab/objectstorage/uploads",
-      extraVolumeMounts: |
-        - name: connection
-          mountPath: /etc/gitlab/objectstorage/
-          readOnly: true
+      # extraVolumeMounts: |
+      #   - name: connection
+      #     mountPath: "/etc/gitlab/objectstorage/"
+      #     readOnly: true
       
       extraVolumes: |
         - name: connection
           configMap:
             name: {{ .Values.s3config }}
-            items:
-              - key: connection
-                path: connection
 
       ## Init containers configure gitlab's s3 credentials by altering these files in the pods with keys from the ceph user
       # 1. backups are in `~/.s3cfg` @ see https://s3tools.org/kb/item14.htm
@@ -105,7 +102,7 @@ gitlab:
       extraInitContainers: |
         - name: artifacts
           image: busybox:1.28
-          command:  [ "ls", "/etc/gitlab/objectstorage", "&&", "cat", '/etc/gitlab/objectstorage/connection', '|', 'envsubst', '|', "tee", '/etc/gitlab/objectstorage/artifacts' ]
+          command:  [ "cat", '/etc/gitlab/objectstorage/connection', '|', 'envsubst', '|', "tee", '/etc/gitlab/objectstorage/artifacts' ]
           #['echo', '$S3_CONFIG', '|', 'envsubst', '|', "tee", '/etc/gitlab/objectstorage/artifacts' ]
           env:
           - name: ACCESS_KEY
@@ -123,6 +120,10 @@ gitlab:
               secretKeyRef:
                 name: {{ .Values.buckets.artifacts }}
                 key: AWS_SECRET_ACCESS_KEY
+          volumeMounts:
+          - name: connection
+            mountPath: "/etc/gitlab/objectstorage/"
+            readOnly: true
         - name: uploads
           image: busybox:1.28
           command: ['cat', '/etc/gitlab/objectstorage/connection', '|', 'envsubst', '|', "tee", "/etc/gitlab/objectstorage/uploads" ]
@@ -161,6 +162,10 @@ gitlab:
               secretKeyRef:
                 name: {{ .Values.buckets.externalDiffs }}
                 key: AWS_SECRET_ACCESS_KEY
+          volumeMounts:
+          - name: connection
+            mountPath: "/etc/gitlab/objectstorage/"
+            readOnly: true
         - name: lfs
           image: busybox:1.28
           command: ['cat', '/etc/gitlab/objectstorage/connection', '|', 'envsubst', '|', "tee", "/etc/gitlab/objectstorage/lfs" ]
@@ -180,6 +185,10 @@ gitlab:
               secretKeyRef:
                 name: {{ .Values.buckets.lfs }}
                 key: AWS_SECRET_ACCESS_KEY
+          volumeMounts:
+          - name: connection
+            mountPath: "/etc/gitlab/objectstorage/"
+            readOnly: true
         - name: pseudo
           image: busybox:1.28
           command: ['cat', '/etc/gitlab/objectstorage/connection', '|', 'envsubst', '|', "tee", "/etc/gitlab/objectstorage/pseudonymizer" ]
@@ -199,6 +208,10 @@ gitlab:
               secretKeyRef:
                 name: {{ .Values.buckets.pseudonymizer }}
                 key: AWS_SECRET_ACCESS_KEY
+          volumeMounts:
+          - name: connection
+            mountPath: "/etc/gitlab/objectstorage/"
+            readOnly: true
 
     gitaly:
       <<: *init_cont
