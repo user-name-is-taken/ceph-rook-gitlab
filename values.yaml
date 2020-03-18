@@ -102,8 +102,7 @@ gitlab:
       extraInitContainers: |
         - name: artifacts
           image: busybox:1.28
-          command:  [ "cat", '/etc/gitlab/objectstorage/connection', '|', 'envsubst', '|', "tee", '/etc/gitlab/objectstorage/artifacts' ]
-          #['echo', '$S3_CONFIG', '|', 'envsubst', '|', "tee", '/etc/gitlab/objectstorage/artifacts' ]
+          command:  [ "/bin/sh", "-c", "cat /etc/gitlab/objectstorage/connection | envsubst | tee /etc/gitlab/objectstorage/artifacts" ]
           env:
           - name: ACCESS_KEY
             valueFrom:
@@ -126,7 +125,7 @@ gitlab:
             readOnly: true
         - name: uploads
           image: busybox:1.28
-          command: ['cat', '/etc/gitlab/objectstorage/connection', '|', 'envsubst', '|', "tee", "/etc/gitlab/objectstorage/uploads" ]
+          command: [ "/bin/sh", "-c", "cat /etc/gitlab/objectstorage/connection | envsubst | tee /etc/gitlab/objectstorage/uploads" ]
           env:
           - name: ACCESS_KEY
             valueFrom:
@@ -145,7 +144,7 @@ gitlab:
                 key: AWS_SECRET_ACCESS_KEY
         - name: externaldiffs
           image: busybox:1.28
-          command: ['cat', '/etc/gitlab/objectstorage/connection', '|', 'envsubst', '|', "tee", "/etc/gitlab/objectstorage/external_diffs" ]
+          command: [ "/bin/sh", "-c", "cat /etc/gitlab/objectstorage/connection | envsubst | tee /etc/gitlab/objectstorage/external_diffs" ]
           env:
           - name: ACCESS_KEY
             valueFrom:
@@ -168,7 +167,7 @@ gitlab:
             readOnly: true
         - name: lfs
           image: busybox:1.28
-          command: ['cat', '/etc/gitlab/objectstorage/connection', '|', 'envsubst', '|', "tee", "/etc/gitlab/objectstorage/lfs" ]
+          command: [ "/bin/sh", "-c", "cat /etc/gitlab/objectstorage/connection | envsubst | tee /etc/gitlab/objectstorage/lfs" ]
           env:
           - name: ACCESS_KEY
             valueFrom:
@@ -191,7 +190,7 @@ gitlab:
             readOnly: true
         - name: pseudo
           image: busybox:1.28
-          command: ['cat', '/etc/gitlab/objectstorage/connection', '|', 'envsubst', '|', "tee", "/etc/gitlab/objectstorage/pseudonymizer" ]
+          command: [ "/bin/sh", "-c", "cat /etc/gitlab/objectstorage/connection | envsubst | tee /etc/gitlab/objectstorage/pseudonymizer" ]
           env:
           - name: ACCESS_KEY
             valueFrom:
