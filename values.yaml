@@ -105,7 +105,7 @@ gitlab:
       extraInitContainers: |
         - name: artifacts
           image: busybox:1.28
-          command:  ["cat", '/etc/gitlab/objectstorage/connection', '|', 'envsubst', '|', "tee", '/etc/gitlab/objectstorage/artifacts' ]
+          command:  [ "ls", "/etc/gitlab/objectstorage", "&&", "cat", '/etc/gitlab/objectstorage/connection', '|', 'envsubst', '|', "tee", '/etc/gitlab/objectstorage/artifacts' ]
           #['echo', '$S3_CONFIG', '|', 'envsubst', '|', "tee", '/etc/gitlab/objectstorage/artifacts' ]
           env:
           - name: ACCESS_KEY
