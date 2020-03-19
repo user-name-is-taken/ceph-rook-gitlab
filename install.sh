@@ -24,6 +24,9 @@ export AWS_SECRET_ACCESS_KEY=$(kubectl -n $NAMESPACE get secret ceph-bucket -o y
     # docs: https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#connection
     # more docs: https://docs.gitlab.com/ee/administration/job_artifacts.html#s3-compatible-connection-settings
 
+# convert from user secret to gitlab's secret format
+
+
 # install gitlab without recreating s3 objects.
 
 # TODO set variables: bucket,  
