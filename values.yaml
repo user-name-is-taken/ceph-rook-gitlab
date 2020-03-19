@@ -237,7 +237,7 @@ gitlab:
         https: false
         
         
-    mino:
+    minio:
       # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/charts/globals.md#configure-minio-settings
       enabled: false
 
