@@ -22,7 +22,7 @@ helm install $RELEASE_NAME . --set gitlab.enabled=false --namespace=$NAMESPACE -
 
 ######################REWRITE######################
 
-command="helm upgrade ${RELEASE_NAME} . --debug --reuse-values --set gitlab.enabled=true "
+command="helm upgrade ${RELEASE_NAME} . --debug --no-hooks --reuse-values --set gitlab.enabled=true "
 
 # for loop: LFS, Artifacts, Uploads, Packages, and External MR diffs
   # get expected secret name from helm chart
@@ -104,9 +104,6 @@ cat $tmpUserYaml
 
 # TODO: use a hostname, not an ip address here
 
-# | tee /config/.s3cfg
-
-echo "WORKS UP TO HERE"
 
 kubectl create secret generic storage-config --from-file=config=$tmpUserYaml
 
@@ -116,8 +113,6 @@ echo $command
 
 eval $command
 
-#! Error: cannot re-use a name that is still in use
-#! You installed with pre-insall!! yikes!
 
 # set backup secret
 
