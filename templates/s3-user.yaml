@@ -2,6 +2,8 @@ apiVersion: ceph.rook.io/v1
 kind: CephObjectStoreUser
 metadata:
   name: my-user
+  annotations:
+    "helm.sh/hook": pre-install
   namespace: {{ .Release.Namespace }}
 spec:
   store: {{ .Values.rook.storename }}
