@@ -24,4 +24,4 @@
 
 */registry-secret.yaml
 
-backupCephStuff/*
+s3_secret_steps/*

@@ -7,10 +7,9 @@ source ./variables
 
 # note you can also do this with helm install's 
 
-echo "running helm install"
 # install s3 objects without installing gitlab 
 # https://stackoverflow.com/questions/54032974/helm-conditionally-install-subchart
-#helm install $RELEASE_NAME . --set gitlab.enabled=false --namespace=$NAMESPACE --dependency-update --atomic
+helm install $RELEASE_NAME . --set gitlab.enabled=false --namespace=$NAMESPACE --dependency-update --atomic
 
 # set secret
     # example: https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/examples/objectstorage/rails.s3.yaml
@@ -23,7 +22,7 @@ echo "running helm install"
 
 ######################REWRITE######################
 
-command="helm install ${RELEASE_NAME} ."
+command="helm upgrade ${RELEASE_NAME} . --debug --reuse-values --set gitlab.enabled=true "
 
 # for loop: LFS, Artifacts, Uploads, Packages, and External MR diffs
   # get expected secret name from helm chart
@@ -34,15 +33,17 @@ command="helm install ${RELEASE_NAME} ."
     # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/examples/objectstorage/rails.s3.yaml
 
 # from rook.bucket
-buckets=( lfs artifacts uploads packages externalDiffs pseudonymizer backups )
+buckets=( lfs artifacts uploads packages externalDiffs pseudonymizer backups tmpBucket )
 
 #  omniauth_bucket -> tmp_bucket?
 
+# translates secrets from buckets created by helm to gitlab's format
 for i in "${buckets[@]}"
 do
   tmpfile=mktemp
   # get secret
   bucketName=$( helm show values . --skip-headers | grep "^ *${i}_bucket:" | head -1 | awk '{print $3}' ) 
+  
   export AWS_HOST=$(kubectl -n $NAMESPACE get cm $bucketName -o yaml | grep BUCKET_HOST | awk '{print $2}') 
 
   # TODO: get the auto-generated secret name and replace "ceph-bucket" with it.
@@ -51,10 +52,13 @@ do
 
   envsubst < s3base.txt > $tmpfile
 
-  kubectl create secret generic "${bucketName}-bucket" --from-file=connection=$tmpfile
 
-  command+=" --set gitlab.global.appConfig.${i}.connection.secret=${bucketName}-bucket --set gitlab.global.appConfig.${i}.connection.key=connection"
-
+  if [ $i = "backups" ] || [ $i = "tmpBucket" ]; then
+    command+=" --set global.appConfig.backups.${i}=$bucketName"
+  else
+    kubectl create secret generic "${bucketName}-bucket" --from-file=connection=$tmpfile
+    command+=" --set gitlab.global.appConfig.${i}.connection.secret=${bucketName}-bucket --set gitlab.global.appConfig.${i}.connection.key=connection"
+  fi
   rm $tmpfile
 
 done
@@ -65,16 +69,55 @@ done
 # https://lollyrock.com/posts/s3cmd-with-radosgw/
 
 
+#user has to be in the same namespace as the store...????
 
-s3cmd ls
+export STORE_NAME=$( helm show values . --skip-headers | grep "^ *storename:" | head -1 | awk '{print $2}' ) 
 
-command+="--set global.appConfig.backups.bucket=gitlab-backup-storage
---set global.appConfig.backups.tmpBucket=gitlab-tmp-storage
---set gitlab.task-runner.backups.objectStorage.config.secret=storage-config
---set gitlab.task-runner.backups.objectStorage.config.key=config"
+tmpUserYaml=mktemp
 
+envsubst < ./s3_secret_steps/s3-user.yaml > $tmpUserYaml
+
+cat $tmpUserYaml
+
+kubectl create -f $tmpUserYaml -n rook-ceph
+
+## Note: git user is from s3-user.yaml
+SECRET_NAME=rook-ceph-object-user-$STORE_NAME-my-user
+
+sleep 10
+
+export AWS_USER_ACCESS_KEY_ID=$(kubectl -n rook-ceph get secret $SECRET_NAME -o yaml | grep AccessKey: | awk '{print $2}' | base64 --decode) 
+export AWS_USER_SECRET_ACCESS_KEY=$(kubectl -n rook-ceph get secret $SECRET_NAME -o yaml | grep SecretKey: | awk '{print $2}' | base64 --decode)
+
+echo $AWS_USER_ACCESS_KEY_ID
+
+echo $AWS_USER_SECRET_ACCESS_KEY
+echo $AWS_HOST
+
+# https://medium.com/flant-com/to-rook-in-kubernetes-df13465ff553
+
+s3cmd --configure --dump-config --access_key=$AWS_USER_ACCESS_KEY_ID --secret_key=$AWS_USER_SECRET_ACCESS_KEY --no-ssl --host-bucket=rook-ceph-rgw-$STORE_NAME --host=rook-ceph-rgw-$STORE_NAME.rook-ceph --host-bucket=rook-ceph-rgw-$STORE_NAME.rook-ceph > $tmpUserYaml
+
+#s3cmd ls --access_key=$AWS_USER_ACCESS_KEY_ID --secret_key=$AWS_USER_SECRET_ACCESS_KEY --no-ssl --host=10.97.157.239 --host-bucket=rook-ceph-rgw-$STORE_NAME
+
+cat $tmpUserYaml
+
+# TODO: use a hostname, not an ip address here
+
+# | tee /config/.s3cfg
+
+echo "WORKS UP TO HERE"
+
+kubectl create secret generic storage-config --from-file=config=$tmpUserYaml
+
+command+=" --set gitlab.gitlab.task-runner.backups.objectStorage.config.secret=storage-config --set gitlab.gitlab.task-runner.backups.objectStorage.config.key=config"
+
+echo $command
 
 eval $command
+
+#! Error: cannot re-use a name that is still in use
+#! You installed with pre-insall!! yikes!
 
 # set backup secret
 
